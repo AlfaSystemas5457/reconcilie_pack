@@ -284,7 +284,7 @@
                                                         <t t-if="state.total[partner]['total_debit']"
                                                            t-esc="state.total[partner]['currency_id']"/>
                                                         <t t-if="state.total[partner]['total_debit']"
-                                                           t-esc="state.total[partner]['total_debit_display']"/>
+                                                           t-esc="state.total[partner]['total_debit']"/>
                                                     </span>
                                                 </th>
                                                 <th>
@@ -292,7 +292,7 @@
                                                         <t t-if="state.total[partner]['total_credit']"
                                                            t-esc="state.total[partner]['currency_id']"/>
                                                         <t t-if="state.total[partner]['total_credit']"
-                                                           t-esc="state.total[partner]['total_credit_display']"/>
+                                                           t-esc="state.total[partner]['total_credit']"/>
                                                     </span>
                                                 </th>
                                                 <th/>
@@ -392,7 +392,7 @@
                                                     <th>
                                                         <span>
                                                             <t t-if="valuelist[0]['move_name']"
-                                                               t-esc="valuelist[0]['move_id']"/>
+                                                               t-esc="valuelist[0]['move_name']"/>
                                                         </span>
                                                     </th>
                                                     <th>
@@ -412,7 +412,7 @@
                                                             <t t-if="valuelist[0]['debit']"
                                                                t-esc="state.total[partner]['currency_id']"/>
                                                             <t t-if="valuelist[0]['debit']"
-                                                               t-esc="valuelist[0]['debit_display']"/>
+                                                               t-esc="valuelist[0]['debit']"/>
                                                         </span>
                                                     </th>
                                                     <th>
@@ -420,7 +420,7 @@
                                                             <t t-if="valuelist[0]['credit']"
                                                                t-esc="state.total[partner]['currency_id']"/>
                                                             <t t-if="valuelist[0]['credit']"
-                                                               t-esc="valuelist[0]['credit_display']"/>
+                                                               t-esc="valuelist[0]['credit']"/>
                                                         </span>
                                                     </th>
                                                     <th>
@@ -428,7 +428,7 @@
                                                             <t t-if="valuelist[0]['amount_currency']"
                                                                t-esc="state.total[partner]['currency_id']"/>
                                                             <t t-if="valuelist[0]['amount_currency']"
-                                                               t-esc="valuelist[0]['amount_currency_display']"/>
+                                                               t-esc="valuelist[0]['amount_currency']"/>
                                                         </span>
                                                     </th>
                                                 </tr>

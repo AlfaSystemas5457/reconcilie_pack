@@ -91,6 +91,11 @@
                                 context="{'skip_search_count': 1}"
                             />
                         </page>
+                        <page name="format" string="Format">
+                            <group>
+                                <field name="label_text_limit" />
+                            </group>
+                        </page>
                     </notebook>
                 </div>
                 <div invisible="only_one_unaffected_earnings_account">
@@ -157,7 +162,7 @@
                 'default_payable_accounts_only':1,
             }"
         />
-        <field name="groups_id" eval="[(4, ref('account.group_account_manager'))]" />
+        <field name="group_ids" eval="[(4, ref('account.group_account_manager'))]" />
         <field name="target">new</field>
     </record>
 </odoo>

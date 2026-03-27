@@ -3,8 +3,8 @@
 #
 #    Cybrosys Technologies Pvt. Ltd.
 #
-#    Copyright (C) 2024-TODAY Cybrosys Technologies(<https://www.cybrosys.com>)
-#    Author: Bhagyadev KP (<https://www.cybrosys.com>)
+#    Copyright (C) 2025-TODAY Cybrosys Technologies(<https://www.cybrosys.com>)
+#    Author: Swetha Anand (<https://www.cybrosys.com>)
 #
 #    You can modify it under the terms of the GNU LESSER
 #    GENERAL PUBLIC LICENSE (LGPL v3), Version 3.
@@ -268,10 +268,10 @@ class BankBookReport(models.TransientModel):
                     sheet.merge_range(row, col + 9, row, col + 10, ' ',
                                       txt_name)
                     sheet.merge_range(row, col + 11, row, col + 12,
-                                      data['total'][move_line]['total_debit_display'],
+                                      data['total'][move_line]['total_debit'],
                                       txt_name)
                     sheet.merge_range(row, col + 13, row, col + 14,
-                                      data['total'][move_line]['total_credit_display'],
+                                      data['total'][move_line]['total_credit'],
                                       txt_name)
                     sheet.merge_range(row, col + 15, row, col + 16,
                                       data['total'][move_line]['total_debit'] -

@@ -251,7 +251,6 @@
                                                         <th colspan="6">
                                                             <span style="gap: 12px;display: flex;">
                                                                 <t t-esc="valuelist['move_name']"/>
-                                                                <t t-esc="valuelist['name']"/>
                                                                 <a type="button"
                                                                    class="dropdown-toggle"
                                                                    data-bs-toggle="dropdown">

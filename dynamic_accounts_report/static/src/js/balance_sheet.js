@@ -284,7 +284,4 @@ class BalanceSheet extends owl.Component {
 
 }
 BalanceSheet.template = 'bls_template_new';
-//BalanceSheet.components = {
-//    FinancialReportControlPanel
-//}
 actionRegistry.add("bl_s", BalanceSheet);

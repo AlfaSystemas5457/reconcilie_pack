@@ -3,8 +3,8 @@
 #
 #    Cybrosys Technologies Pvt. Ltd.
 #
-#    Copyright (C) 2024-TODAY Cybrosys Technologies(<https://www.cybrosys.com>)
-#    Author: Bhagyadev KP (<https://www.cybrosys.com>)
+#    Copyright (C) 2025-TODAY Cybrosys Technologies(<https://www.cybrosys.com>)
+#    Author: Swetha Anand (<https://www.cybrosys.com>)
 #
 #    You can modify it under the terms of the GNU LESSER
 #    GENERAL PUBLIC LICENSE (LGPL v3), Version 3.
@@ -115,6 +115,7 @@ class AccountTrialBalance(models.TransientModel):
         :return: List of dictionaries representing the financial report.
         :rtype: list
         """
+
         if options == {}:
             options = None
         if options is None:
@@ -207,7 +208,7 @@ class AccountTrialBalance(models.TransientModel):
                         domain = [('date', '>=', com_start_date),
                                   ('account_id', '=', account_id.id),
                                   ('date', '<=', com_end_date),
-                                  ('parent_state', 'in', option_domain), ]
+                                  ('parent_state', 'in', option_domain)]
                         if journal_list:
                             domain.append(
                                 ('journal_id', 'in', journal_list), )
@@ -243,15 +244,14 @@ class AccountTrialBalance(models.TransientModel):
                                   ('parent_state', 'in', option_domain), ]
                         if journal_list:
                             domain.append(
-                                ('journal_id', 'in', journal_list), )
+                                ('journal_id', 'in', journal_list))
                         if analytic:
                             domain.append(
                                 ('analytic_line_ids', 'in', analytic))
                         if method is not None and 'cash' in method:
                             domain.append(('journal_id', 'in',
                                            self.env.company.tax_cash_basis_journal_id.ids))
-                        move_lines = self.env['account.move.line'].search(
-                            domain)
+                        move_lines = self.env['account.move.line'].search(domain)
                         dynamic_date_num[
                             f"dynamic_date_num{i}"] = 'Q' + ' ' + str(
                             get_quarter_number(com_start_date)) + ' ' + str(
@@ -265,7 +265,7 @@ class AccountTrialBalance(models.TransientModel):
             domain = [('date', '>=', start_date),
                       ('account_id', '=', account_id.id),
                       ('date', '<=', end_date),
-                      ('parent_state', 'in', option_domain), ]
+                      ('parent_state', 'in', option_domain)]
             if journal_list:
                 domain.append(
                     ('journal_id', 'in', journal_list), )
@@ -398,26 +398,39 @@ class AccountTrialBalance(models.TransientModel):
             option_keys_str = ', '.join(option_keys)
             sheet.merge_range('C7:G7', option_keys_str, filter_body)
         sheet.write(9, col, '', sub_heading)
-        sheet.merge_range(9, col + 1, 9, col + 2, 'Initial Balance',
-                          sub_heading)
-        i = 3
-        for date_view in data['date_viewed']:
-            sheet.merge_range(9, col + i, 9, col + i + 1, date_view,
-                              sub_heading)
-            i += 2
-        sheet.merge_range(9, col + i, 9, col + i + 1, 'End Balance',
-                          sub_heading)
-        sheet.write(10, col, '', sub_heading)
-        sheet.write(10, col + 1, 'Debit', sub_heading)
-        sheet.write(10, col + 2, 'Credit', sub_heading)
-        i = 3
-        for date_views in data['date_viewed']:
-            sheet.write(10, col + i, 'Debit', sub_heading)
-            i += 1
-            sheet.write(10, col + i, 'Credit', sub_heading)
-            i += 1
+        # sheet.merge_range(9, col + 1, 9, col + 2, 'Initial Balance',
+        #                   sub_heading)
+        i = 1  # starting offset
+
+        # Initial Balance header
+        sheet.merge_range(9, col + i, 9, col + i + 1, 'Initial Balance', sub_heading)
         sheet.write(10, col + i, 'Debit', sub_heading)
-        sheet.write(10, col + (i + 1), 'Credit', sub_heading)
+        sheet.write(10, col + i + 1, 'Credit', sub_heading)
+        i += 2
+
+        # Dynamic date headers (safely)
+        dynamic_dates = {}
+        if data.get('data') and len(data['data']) > 0 and len(data['data'][0]) > 0:
+            dynamic_dates = data['data'][0][0].get('dynamic_date_num', {})
+
+        if data.get('apply_comparison') and dynamic_dates:
+            for key, display in dynamic_dates.items():
+                sheet.merge_range(9, col + i, 9, col + i + 1, display, sub_heading)
+                sheet.write(10, col + i, 'Debit', sub_heading)
+                sheet.write(10, col + i + 1, 'Credit', sub_heading)
+                i += 2
+        else:
+            for date_view in data.get('date_viewed', []):
+                sheet.merge_range(9, col + i, 9, col + i + 1, date_view, sub_heading)
+                sheet.write(10, col + i, 'Debit', sub_heading)
+                sheet.write(10, col + i + 1, 'Credit', sub_heading)
+                i += 2
+
+        # End Balance header
+        sheet.merge_range(9, col + i, 9, col + i + 1, 'End Balance', sub_heading)
+        sheet.write(10, col + i, 'Debit', sub_heading)
+        sheet.write(10, col + i + 1, 'Credit', sub_heading)
+
         if data:
             if report_action == 'dynamic_accounts_report.action_trial_balance':
                 row = 11

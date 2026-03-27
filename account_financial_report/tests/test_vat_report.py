@@ -179,23 +179,21 @@ class TestVATReport(AccountTestInvoicingCommon):
         cls.init_invoice(
             "out_invoice",
             name="Test invoice 1",
-            partner=cls.env.ref("base.res_partner_2"),
+            partner=cls.partner_b,
             invoice_date=time.strftime("%Y-%m-03"),
             post=True,
-            lines=[
-                (cls.env.ref("product.product_product_4"), cls.income_account, 1, 100.0)
-            ],
+            lines=[(cls.product_b, cls.income_account, 1, 100.0)],
             taxes=cls.tax_10,
         )
         cls.init_invoice(
             "out_invoice",
             name="Test invoice 2",
-            partner=cls.env.ref("base.res_partner_2"),
+            partner=cls.partner_b,
             invoice_date=time.strftime("%Y-%m-04"),
             post=True,
             lines=[
                 (
-                    cls.env.ref("product.product_product_4"),
+                    cls.product_b,
                     cls.income_account,
                     1,
                     250.0,
@@ -217,7 +215,7 @@ class TestVATReport(AccountTestInvoicingCommon):
                 "tax_detail": True,
             }
         )
-        data = vat_report._prepare_vat_report()
+        data = vat_report._prepare_report_data()
         res_data = self.env[
             "report.account_financial_report.vat_report"
         ]._get_report_values(vat_report, data)

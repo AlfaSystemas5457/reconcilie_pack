@@ -18,6 +18,7 @@
                     <br/>
                     <br/>
                     <div class="filters">
+                        <t t-esc="date_from"/>
                         <table class="table table-sm table-reports">
                             <thead class="filter_table"
                                    style="background:#808080;">
@@ -30,8 +31,54 @@
                                     <th>Target move</th>
                                 </tr>
                             </thead>
-                            <tbody style="font-size:11px;font-weight:100;">
+                            <tbody>
                                 <tr>
+                                    <td>
+                                        <span t-esc="date_from"/>
+                                        <t t-if="date_from">
+                                            <span t-esc="date_from"/>
+                                        </t>
+                                        <t t-if="date_to">
+                                            –
+                                            <span t-esc="date_to"/>
+                                        </t>
+                                        <t t-if="not date_from and not date_to">
+                                            <span t-esc="date_range or 'All'"/>
+                                        </t>
+                                    </td>
+                                    <td>
+                                        <span t-esc="comparison or '-'"/>
+                                    </td>
+                                    <td>
+                                        <t t-if="account_ids">
+                                            <t t-foreach="account_ids" t-as="acc">
+                                                <span t-esc="acc"/>
+                                                <t>, </t>
+                                            </t>
+                                        </t>
+                                        <t t-if="not account_ids">All</t>
+                                    </td>
+                                    <td>
+                                        <t t-if="journal_ids">
+                                            <t t-foreach="journal_ids" t-as="jrn">
+                                                <span t-esc="jrn"/>
+                                                <t>, </t>
+                                            </t>
+                                        </t>
+                                        <t t-if="not journal_ids">All</t>
+                                    </td>
+                                    <td>
+                                        <t t-if="analytic_ids">
+                                            <t t-foreach="analytic_ids" t-as="ana">
+                                                <span t-esc="ana"/>
+                                                <t>, </t>
+                                            </t>
+                                        </t>
+                                        <t t-if="not analytic_ids">All</t>
+                                    </td>
+                                    <td>
+                                        <span t-esc="target or 'All'"/>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>

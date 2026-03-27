@@ -3,8 +3,8 @@
 #
 #    Cybrosys Technologies Pvt. Ltd.
 #
-#    Copyright (C) 2024-TODAY Cybrosys Technologies(<https://www.cybrosys.com>)
-#    Author: Bhagyadev KP (<https://www.cybrosys.com>)
+#    Copyright (C) 2025-TODAY Cybrosys Technologies(<https://www.cybrosys.com>)
+#    Author: Swetha Anand (<https://www.cybrosys.com>)
 #
 #    You can modify it under the terms of the GNU LESSER
 #    GENERAL PUBLIC LICENSE (LGPL v3), Version 3.
@@ -655,7 +655,7 @@ class TaxReport(models.TransientModel):
         for date in data['date_viewed']:
             sheet.write(6, col + j, 'NET', sub_heading)
             sheet.write(6, col + j + 1, 'TAX', sub_heading)
-            j += 1
+            j += 2
         sheet.write(7, col, 'Sales', sub_heading)
         sheet.write(7, col + 1, ' ', sub_heading)
         sheet.write(7, col + 2, data['sale_total'], sub_heading)
@@ -690,7 +690,7 @@ class TaxReport(models.TransientModel):
                                 sheet.write(row, col, sale['dynamic tax'][
                                     'dynamic_total_tax_sum' + str(num)],
                                             txt_name)
-                            j += 1
+                            j += 2
                 j = 0
                 sheet.write(row, col + j, sale['name'], txt_name)
                 sheet.write(row, col + j + 1, sale['net'], txt_name)
@@ -738,7 +738,7 @@ class TaxReport(models.TransientModel):
                                 sheet.write(row, col, purchase['dynamic tax'][
                                     'dynamic_total_tax_sum' + str(num)],
                                             txt_name)
-                            j += 1
+                            j += 2
                 j = 0
                 sheet.write(row, col + j, purchase['name'], txt_name)
                 sheet.write(row, col + j + 1, purchase['net'], txt_name)

@@ -3,8 +3,8 @@
 #
 #    Cybrosys Technologies Pvt. Ltd.
 #
-#    Copyright (C) 2024-TODAY Cybrosys Technologies(<https://www.cybrosys.com>)
-#    Author: Bhagyadev KP (<https://www.cybrosys.com>)
+#    Copyright (C) 2025-TODAY Cybrosys Technologies(<https://www.cybrosys.com>)
+#    Author: Swetha Anand (<https://www.cybrosys.com>)
 #
 #    You can modify it under the terms of the GNU LESSER
 #    GENERAL PUBLIC LICENSE (LGPL v3), Version 3.
@@ -191,8 +191,7 @@ class CashBookReport(models.TransientModel):
                 lambda x: x.account_id.id == account['id'])
             move_line_data = move_lines.read(
                 ['date', 'journal_id', 'partner_id', 'move_name', 'debit',
-                 'move_id',
-                 'credit', 'name', 'ref'])
+                 'move_id', 'credit', 'name', 'ref'])
             data[move_lines.mapped('account_id').display_name] = move_line_data
             currency_id = self.env.company.currency_id.symbol
             move_lines_total[move_lines.mapped('account_id').display_name] = {

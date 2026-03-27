@@ -44,7 +44,7 @@
                             <div class="act_as_thead">
                                 <div class="act_as_row labels">
                                     <div class="act_as_cell" style="width: 100%;">
-                                        <t t-esc="grouped_item['name']" />
+                                        <t t-out="grouped_item['name']" />
                                     </div>
                                 </div>
                             </div>
@@ -358,7 +358,7 @@
                     <t
                         t-set="domain"
                         t-value="[('account_id', '=', int(account_id)),
-                                 ('partner_id', '=', int(partner_id)),
+                                 ('partner_id', '=', int(partner_id) or False),
                                  ('date', '&lt;', date_from)]"
                     />
                     <span
@@ -416,7 +416,7 @@
                     <t
                         t-set="domain"
                         t-value="[('account_id', '=', int(account_id)),
-                                 ('partner_id', '=', int(partner_id)),
+                                 ('partner_id', '=', int(partner_id) or False),
                                  ('date', '&gt;=', date_from),
                                  ('date', '&lt;=', date_to),
                                  ('debit', '&lt;&gt;', 0)]"
@@ -476,7 +476,7 @@
                     <t
                         t-set="domain"
                         t-value="[('account_id', '=', int(account_id)),
-                                 ('partner_id', '=', int(partner_id)),
+                                 ('partner_id', '=', int(partner_id) or False),
                                  ('date', '&gt;=', date_from),
                                  ('date', '&lt;=', date_to),
                                  ('credit', '&lt;&gt;', 0)]"
@@ -535,7 +535,7 @@
                     <t
                         t-set="domain"
                         t-value="[('account_id', '=', int(account_id)),
-                                 ('partner_id', '=', int(partner_id)),
+                                 ('partner_id', '=', int(partner_id) or False),
                                  ('date', '&gt;=', date_from),
                                  ('date', '&lt;=', date_to),
                                  ('balance', '&lt;&gt;', 0)]"
@@ -590,7 +590,7 @@
                     <t
                         t-set="domain"
                         t-value="[('account_id', '=', int(account_id)),
-                                 ('partner_id', '=', int(partner_id)),
+                                 ('partner_id', '=', int(partner_id) or False),
                                  ('date', '&lt;=', date_to)]"
                     />
                     <span

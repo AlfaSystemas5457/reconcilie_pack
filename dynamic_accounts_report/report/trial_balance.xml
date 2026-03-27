@@ -88,6 +88,13 @@
                                         <t t-esc="date_view"/>
                                     </th>
                                 </t>
+                                <t t-if="apply_comparison == true">
+                                    <t t-foreach="data[0][0]['dynamic_date_num'].items()" t-as="item" t-key="item[0]">
+                                        <th colspan="2">
+                                            <t t-esc="item[1]"/>
+                                        </th>
+                                    </t>
+                                </t>
                                 <th colspan="2">End Balance</th>
                             </tr>
                             <tr class="o_heading" style="text-align:center;background:#D3D3D3;">

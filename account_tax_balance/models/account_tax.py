@@ -3,6 +3,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from odoo import api, fields, models
+from odoo.fields import Domain
 
 
 class AccountTax(models.Model):
@@ -32,17 +33,10 @@ class AccountTax(models.Model):
             context.get("target_move", "posted"),
         )
 
-    def _account_tax_ids_with_moves(self):
-        """Return all account.tax ids for which there is at least
-        one account.move.line in the context period
-        for the user company.
-
-        Caveat: this ignores record rules and ACL but it is good
-        enough for filtering taxes with activity during the period.
-        """
+    def _account_tax_ids_with_moves_query(self):
         from_date, to_date, company_ids, _ = self.get_context_values()
         company_ids = tuple(company_ids)
-        req = """
+        query = """
             SELECT id
             FROM account_tax at
             WHERE
@@ -62,7 +56,19 @@ class AccountTax(models.Model):
                 )
             )
         """
-        self.env.cr.execute(req, (company_ids, from_date, to_date, company_ids))
+        params = (company_ids, from_date, to_date, company_ids)
+        return query, params
+
+    def _account_tax_ids_with_moves(self):
+        """Return all account.tax ids for which there is at least
+        one account.move.line in the context period
+        for the user company.
+
+        Caveat: this ignores record rules and ACL but it is good
+        enough for filtering taxes with activity during the period.
+        """
+        query, params = self._account_tax_ids_with_moves_query()
+        self.env.cr.execute(query, params)
         return [r[0] for r in self.env.cr.fetchall()]
 
     def _compute_has_moves(self):
@@ -72,14 +78,14 @@ class AccountTax(models.Model):
 
     @api.model
     def _is_unsupported_search_operator(self, operator):
-        return operator != "="
+        return operator != "=" and operator != "in"
 
     @api.model
     def _search_has_moves(self, operator, value):
         if self._is_unsupported_search_operator(operator) or not value:
             raise ValueError(self.env._("Unsupported search operator"))
         ids_with_moves = self._account_tax_ids_with_moves()
-        return [("id", "in", ids_with_moves)]
+        return Domain("id", "in", ids_with_moves)
 
     @api.depends_context(
         "from_date",
@@ -121,11 +127,13 @@ class AccountTax(models.Model):
         return state
 
     def get_move_line_partial_domain(self, from_date, to_date, company_ids):
-        return [
-            ("date", "<=", to_date),
-            ("date", ">=", from_date),
-            ("company_id", "in", company_ids),
-        ]
+        return Domain(
+            [
+                ("date", "<=", to_date),
+                ("date", ">=", from_date),
+                ("company_id", "in", company_ids),
+            ]
+        )
 
     def compute_balance(self, tax_or_base="tax", financial_type=None):
         self.ensure_one()
@@ -135,30 +143,35 @@ class AccountTax(models.Model):
         # balance is debit - credit whereas on tax return you want to see what
         # vat has to be paid so:
         # VAT on sales (credit) - VAT on purchases (debit).
-
-        balance = self.env["account.move.line"].read_group(domain, ["balance"], [])[0][
-            "balance"
-        ]
+        balance = self.env["account.move.line"]._read_group(
+            domain=domain, aggregates=["balance:sum"], groupby=[]
+        )
+        if balance:
+            balance = balance[0][0]
         return balance and -balance or 0
 
     def get_balance_domain(self, state_list, type_list):
-        domain = [
-            ("move_id.state", "in", state_list),
-            ("tax_line_id", "=", self.id),
-        ]
-        domain.extend(self.env["account.move.line"]._get_tax_exigible_domain())
+        domain = Domain(
+            [
+                ("move_id.state", "in", state_list),
+                ("tax_line_id", "=", self.id),
+            ]
+        )
+        domain &= self.env["account.move.line"]._get_tax_exigible_domain()
         if type_list:
-            domain.append(("move_id.financial_type", "in", type_list))
+            domain &= Domain("move_id.financial_type", "in", type_list)
         return domain
 
     def get_base_balance_domain(self, state_list, type_list):
-        domain = [
-            ("move_id.state", "in", state_list),
-            ("tax_ids", "in", self.id),
-        ]
-        domain.extend(self.env["account.move.line"]._get_tax_exigible_domain())
+        domain = Domain(
+            [
+                ("move_id.state", "in", state_list),
+                ("tax_ids", "in", self.id),
+            ]
+        )
+        domain &= self.env["account.move.line"]._get_tax_exigible_domain()
         if type_list:
-            domain.append(("move_id.financial_type", "in", type_list))
+            domain &= Domain("move_id.financial_type", "in", type_list)
         return domain
 
     def get_move_lines_domain(self, tax_or_base="tax", financial_type=None):
@@ -166,12 +179,10 @@ class AccountTax(models.Model):
         state_list = self.get_target_state_list(target_move)
         type_list = self.get_target_type_list(financial_type)
         domain = self.get_move_line_partial_domain(from_date, to_date, company_ids)
-        balance_domain = []
         if tax_or_base == "tax":
-            balance_domain = self.get_balance_domain(state_list, type_list)
+            domain &= self.get_balance_domain(state_list, type_list)
         elif tax_or_base == "base":
-            balance_domain = self.get_base_balance_domain(state_list, type_list)
-        domain.extend(balance_domain)
+            domain &= self.get_base_balance_domain(state_list, type_list)
         return domain
 
     def get_lines_action(self, tax_or_base="tax", financial_type=None):

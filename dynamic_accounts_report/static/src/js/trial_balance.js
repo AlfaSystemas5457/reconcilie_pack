@@ -2,7 +2,7 @@
 const { Component } = owl;
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
-import { useRef, useState } from "@odoo/owl";
+import { useRef, useState, useEffect } from "@odoo/owl";
 import { BlockUI } from "@web/core/ui/block_ui";
 import { download } from "@web/core/network/download";
 const actionRegistry = registry.category("actions");
@@ -23,6 +23,7 @@ class TrialBalance extends owl.Component {
         this.unfoldButton = useRef('unfoldButton');
         this.state = useState({
             move_line: null,
+            default_report: true,
             data: null,
             total: null,
             journals: null,
@@ -43,6 +44,7 @@ class TrialBalance extends owl.Component {
                     },
         });
         this.load_data(self.initial_render = true);
+
     }
     async load_data() {
         /**
@@ -243,23 +245,8 @@ class TrialBalance extends owl.Component {
             }
         }
         this.state.data = await this.orm.call("account.trial.balance", "get_filter_values", [this.start_date.el.value, this.end_date.el.value, this.state.comparison_number, this.state.comparison_type, this.state.selected_journal_list, this.state.selected_analytic, this.state.options,this.state.method,]);
+        this.state.default_report = false
         var date_viewed = []
-//        this.state.data.forEach((value, index) => {
-//        console.log(index)
-//            if (index == 'journal_ids') {
-//                this.state.journals = value
-//                console.log(this.state.journals)
-//            }
-//            if (value.dynamic_date_num) {
-//            let iterable = Array.isArray(value.dynamic_date_num) ? value.dynamic_date_num
-//               : Object.values(value.dynamic_date_num);
-//                for (const date_num of iterable) {
-//                     if (!date_viewed.includes(date_num)) {
-//                         date_viewed.push(date_num);
-//                     }
-//                }
-//            }
-//        })
         if (date_viewed.length !== 0) {
             this.state.date_viewed = date_viewed.reverse()
         }
@@ -373,13 +360,25 @@ class TrialBalance extends owl.Component {
                 data_viewed = self.state.date_viewed.slice(-11);
              }
          }
+
+        // 🔥 Normalize data before sending to QWeb
+        let normalizedData = self.state.data;
+        if (normalizedData && !Array.isArray(normalizedData)) {
+            // case: dict → wrap as [[dict]]
+            normalizedData = [[normalizedData]];
+        } else if (Array.isArray(normalizedData) && normalizedData.length && !Array.isArray(normalizedData[0])) {
+            // case: [dict, dict] → wrap as [[dict, dict]]
+            normalizedData = [normalizedData];
+        }
+        // if already [[dict, dict]], leave as is
+
         return self.action.doAction({
             'type': 'ir.actions.report',
             'report_type': 'qweb-pdf',
             'report_name': 'dynamic_accounts_report.trial_balance',
             'report_file': 'dynamic_accounts_report.trial_balance',
             'data': {
-                'data': self.state.data,
+                'data': normalizedData,   // ✅ always consistent
                 'date_viewed': data_viewed,
                 'filters': this.filter(),
                 'apply_comparison': self.state.apply_comparison,
@@ -390,6 +389,7 @@ class TrialBalance extends owl.Component {
             'display_name': self.props.action.display_name,
         });
     }
+
     filter() {
     var self=this;
     let startDate, endDate;
@@ -451,39 +451,54 @@ class TrialBalance extends owl.Component {
         }
         return filters
     }
-    async print_xlsx() {
-        /**
-         * Asynchronously generates and downloads an XLSX report.
-         * Triggers an action to generate an XLSX report based on the current state and settings,
-         * and initiates the download of the generated XLSX file.
-         *
-         * @returns {void} No explicit return value.
-         */
-        var self = this;
-        var action_title = self.props.action.display_name;
-        var datas = {
-            'data': self.state.data,
-            'date_viewed': self.state.date_viewed,
-            'filters': this.filter(),
-            'apply_comparison': self.state.apply_comparison,
-            'comparison_number_range': self.comparison_number_range,
-            'title': action_title,
-            'report_name': self.props.action.display_name
+
+    async print_xlsx(ev) {
+        ev?.preventDefault && ev.preventDefault();
+        const self = this;
+        const action_title = self.props.action.display_name;
+
+        // Normalize data like PDF
+        let normalizedData = self.state.data;
+        if (normalizedData && !Array.isArray(normalizedData)) {
+            normalizedData = [[normalizedData]];
+        } else if (Array.isArray(normalizedData) && normalizedData.length && !Array.isArray(normalizedData[0])) {
+            normalizedData = [normalizedData];
         }
-        var action = {
-            'data': {
-                'model': 'account.trial.balance',
-                'data': JSON.stringify(datas),
-                'output_format': 'xlsx',
-                'report_action': self.props.action.xml_id,
-                'report_name': action_title,
+
+        // Limit comparison range if too long
+        let comparison_number_range = self.comparison_number_range;
+        let data_viewed = self.state.date_viewed;
+        if (self.state.apply_comparison && self.comparison_number_range.length > 10) {
+            comparison_number_range = self.comparison_number_range.slice(-10);
+            data_viewed = self.state.date_viewed.slice(-11);
+        }
+
+        const datas = {
+            data: normalizedData,
+            date_viewed: data_viewed,
+            filters: self.filter(),
+            apply_comparison: self.state.apply_comparison,
+            comparison_number_range: comparison_number_range,
+            title: action_title,
+            report_name: action_title,
+        };
+
+        const action = {
+            data: {
+                model: 'account.trial.balance',
+                data: JSON.stringify(datas),
+                output_format: 'xlsx',
+                report_action: self.props.action.xml_id,
+                report_name: action_title,
             },
         };
-        BlockUI;
+
+        const block = new BlockUI();
+
         await download({
             url: '/xlsx_report',
             data: action.data,
-            complete: () => unblockUI,
+            complete: () => block.unblock(),
             error: (error) => self.call('crash_manager', 'rpc_error', error),
         });
     }
